@@ -1,0 +1,16 @@
+.htaccess
+errors/
+cache/
+config/
+controllers/
+errors/
+helpers/
+hooks/
+index.html
+language/
+libraries/
+logs/
+migrations/
+models/
+third_party/
+views/
