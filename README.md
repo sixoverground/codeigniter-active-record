@@ -33,8 +33,8 @@ $todo->update_attributes(array('title' => 'This is different'));
 $todo->destroy();
 ```
 
-Installation/Usage
-------------------
+Installation
+------------
 
 Download and copy the MY\_Model.php file into your _application/core_ folder. CodeIgniter will load and initialize this class automatically for you.
 
