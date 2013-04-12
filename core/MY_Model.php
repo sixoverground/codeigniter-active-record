@@ -41,9 +41,12 @@ class MY_Model extends CI_Model {
 	
 	// Callbacks for initializing and finding.
 	protected $after_initialize = array();
+	protected $before_find = array();
 	protected $after_find = array();
 	
-	
+	// Limits
+	protected $limit_value = 0;
+	protected $offset_value = 0;
 	
 	public function __construct()
 	{
@@ -67,6 +70,10 @@ class MY_Model extends CI_Model {
 	public function all()
 	{
 		$result = array();
+		
+		// Trigger before callbacks.
+		$this->run_callback('before_find');
+		
 		$query = $this->connection->get($this->table_name);
 		foreach ($query->result() as $row)
 		{
@@ -89,6 +96,9 @@ class MY_Model extends CI_Model {
 	 */
 	public function find($id)
 	{
+		// Trigger before callbacks.
+		$this->run_callback('before_find');
+		
 		$this->connection->where($this->primary_key, $id);
 		$query = $this->connection->get($this->table_name);
 		foreach ($query->result() as $row)
@@ -113,6 +123,10 @@ class MY_Model extends CI_Model {
 	public function where($conditions)
 	{
 		$result = array();
+
+		// Trigger before callbacks.
+		$this->run_callback('before_find');
+		
 		$query = $this->connection->get_where($this->table_name, $conditions);
 		foreach ($query->result() as $row)
 		{
@@ -260,6 +274,26 @@ class MY_Model extends CI_Model {
 		return $this;
 	}
 	
+	public function limit($limit)
+	{
+		$this->limit_value = $limit;
+		if ( ! in_array('prepare', $this->before_find))
+		{
+			$this->before_find[] = 'prepare';
+		}		
+		return $this;	
+	}
+	
+	public function offset($offset)
+	{
+		$this->offset_value = $offset;
+		if ( ! in_array('prepare', $this->before_find))
+		{
+			$this->before_find[] = 'prepare';
+		}		
+		return $this;
+	}
+	
 	/**
 	 * Include a relationship.
 	 * 
@@ -291,6 +325,17 @@ class MY_Model extends CI_Model {
 			{
 				call_user_func_array(array($this, $method), array($record, $last));
 			}
+		}
+	}
+	
+	/**
+	 * Prepare the query.
+	 */
+	protected function prepare()
+	{
+		if ($this->limit_value > 0)
+		{
+			$this->connection->limit($this->limit_value, $this->offset_value);
 		}
 	}
 	

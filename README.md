@@ -52,6 +52,19 @@ To retrieve records in a specific order, use the order method.
 $todos = $this->todo_model->order('title')->all();
 ```
 
+Limit and Offset
+----------------
+
+Use limit to specify the number of records to be retrieved, and use offset to specify the number or records to skip.
+
+```php
+// Retrieve 5 models.
+$todos = $this->todo_model->limit(5);
+
+// Retrieve 5 models, starting at the 31st.
+$todos = $this->todo_model->limit(5)->offset(30)->all();
+```
+
 Callbacks/Observers
 -------------------
 
