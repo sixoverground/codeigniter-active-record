@@ -165,9 +165,9 @@ class Todo_model extends MY_Model {
  	
  	public $columns = array('okay_with_wife' => FALSE);
   
-	protected function check_with_wife($todo)
+	protected function check_with_wife()
 	{
-		$todo->okay_with_wife = TRUE;
+		$this->okay_with_wife = TRUE;
 	}
 }
 ```

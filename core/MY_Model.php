@@ -79,6 +79,8 @@ class MY_Model extends CI_Model {
 		$this->run_callback('before_find');
 		
 		$query = $this->connection->get($this->table_name);
+		$this->reset();
+		
 		foreach ($query->result() as $row)
 		{
 			$record = $this->parse_row($row);
@@ -105,6 +107,8 @@ class MY_Model extends CI_Model {
 		
 		$this->connection->where($this->primary_key, $id);
 		$query = $this->connection->get($this->table_name);
+		$this->reset();
+		
 		foreach ($query->result() as $row)
 		{
 			$record = $this->parse_row($row);
@@ -132,6 +136,8 @@ class MY_Model extends CI_Model {
 		$this->run_callback('before_find');
 		
 		$query = $this->connection->get_where($this->table_name, $conditions);
+		$this->reset();
+		
 		foreach ($query->result() as $row)
 		{
 			$record = $this->parse_row($row);
@@ -439,8 +445,8 @@ class MY_Model extends CI_Model {
 			{
 				$_POST[$key] = $val;
 			}
-		
-			$this->load->library('form_validation');
+
+			$this->load->library('form_validation');		
 		
 			if (is_array($this->validates))
 			{
@@ -542,6 +548,17 @@ class MY_Model extends CI_Model {
 		$record->after_find = $this->after_find;
 		
 		return $record;
+	}
+	
+	/**
+	 * Reset the model, 
+	 * so that limits and orders are not included in the next query.
+	 */
+	protected function reset()
+	{
+		$this->limit_value = 0;
+		$this->offset_value = 0;
+		$this->before_find = array();		
 	}
 	
 	
