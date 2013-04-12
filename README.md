@@ -49,6 +49,7 @@ Ordering
 To retrieve records in a specific order, use the order method.
 
 ```php
+// Order the models by their title.
 $todos = $this->todo_model->order('title')->all();
 ```
 
