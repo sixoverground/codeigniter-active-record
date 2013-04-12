@@ -66,6 +66,41 @@ $todos = $this->todo_model->limit(5);
 $todos = $this->todo_model->limit(5)->offset(30)->all();
 ```
 
+Relationships
+-------------
+
+**MY\_Model** has support for basic _belongs\_to_ and has\_many relationships. These relationships are easy to define:
+
+```php
+class Todo_model extends MY_Model
+{
+  public $belongs_to = array('project');
+}
+
+class Project_model extends MY_Model
+{
+  public $has_many = array('todos');
+}
+```
+
+You can then access your related data using the `includes()` method:
+
+```php
+$todo = $this->todo_model->includes('project')->find(1);
+$project = $this->project_model->includes('todos')->find(1);
+```
+
+The related data will be embedded in the returned value from `find`:
+
+```php
+echo $todo->project->name;
+
+foreach ($project->todos as $project_todo)
+{
+	echo $project_todo->title;
+}
+```
+
 Callbacks/Observers
 -------------------
 
@@ -104,37 +139,3 @@ class Todo_model extends MY_Model
 }
 ```
 
-Relationships
--------------
-
-**MY\_Model** has support for basic _belongs\_to_ and has\_many relationships. These relationships are easy to define:
-
-```php
-class Todo_model extends MY_Model
-{
-  public $belongs_to = array('project');
-}
-
-class Project_model extends MY_Model
-{
-  public $has_many = array('todos');
-}
-```
-
-You can then access your related data using the `includes()` method:
-
-```php
-$todo = $this->todo_model->includes('project')->find(1);
-$project = $this->project_model->includes('todos')->find(1);
-```
-
-The related data will be embedded in the returned value from `find`:
-
-```php
-echo $todo->project->name;
-
-foreach ($project->todos as $project_todo)
-{
-	echo $project_todo->title;
-}
-```
