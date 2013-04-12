@@ -72,14 +72,12 @@ Relationships
 **MY\_Model** has support for basic _belongs\_to_ and has\_many relationships. These relationships are easy to define:
 
 ```php
-class Todo_model extends MY_Model
-{
-  public $belongs_to = array('project');
+class Todo_model extends MY_Model {
+	public $belongs_to = array('project');
 }
 
-class Project_model extends MY_Model
-{
-  public $has_many = array('todos');
+class Project_model extends MY_Model {
+	public $has_many = array('todos');
 }
 ```
 
@@ -118,21 +116,22 @@ MY_Model uses CodeIgniter's built in form validation to validate data on insert.
 You can enable validation by setting the `$validates` instance to the usual form validation library rules array:
 
 ```php
-class Todo_model extends MY_Model
-{
+class Todo_model extends MY_Model {
 	public $validates = array(
-	  array( 
-	  	'field' => 'title', 
-	    'label' => 'title',
-	    'rules' => 'required' 
-	  ),
+		array( 
+			'field' => 'title', 
+			'label' => 'title',
+			'rules' => 'required' 
+		),
 	);
 }
 ```
 
 Anything valid in the form validation library can be used here. To find out more about the rules array, please [view the library's documentation](http://codeigniter.com/user_guide/libraries/form_validation.html#validationrulesasarray).
 
-With this array set, each call to `save()` or `update_attributes()` will validate the data before allowing  the query to be run. **Unlike the CodeIgniter validation library, this won't validate the POST data, rather, it validates the data passed directly through.**
+With this array set, each call to `save()` or `update_attributes()` will validate the data before allowing  the query to be run. 
+
+**Unlike the CodeIgniter validation library, this won't validate the POST data, rather, it validates the data passed directly through.**
 
 Callbacks
 ---------
@@ -141,34 +140,33 @@ Hook into the life cycle of your Active Record objects. Callbacks are methods th
 
 Available Callbacks:
 
-* $before_validation
-* $after_validation
-* $before_save
-* $around_save
-* $before_create
-* $around_create
-* $after_create
-* $before_update
-* $around_update
-* $after_update
-* $after_save
-* $before_destroy
-* $around_destroy
-* $after_destroy
-* $after_initialize
-* $after_find
+* before_validation
+* after_validation
+* before_save
+* around_save
+* before_create
+* around_create
+* after_create
+* before_update
+* around_update
+* after_update
+* after_save
+* before_destroy
+* around_destroy
+* after_destroy
+* after_initialize
+* after_find
 
 These are instance variables defined at the class level. They are arrays of methods on this class to be called at certain points. An example:
 
 ```php
-class Todo_model extends MY_Model
-{
-  public $before_create = array('check_with_wife');
+class Todo_model extends MY_Model {
+ 	public $before_create = array('check_with_wife');
   
-  protected function check_with_wife($todo)
-  {
-  	$todo->okay_with_wife = TRUE;
-  }
+	protected function check_with_wife($todo)
+	{
+		$todo->okay_with_wife = TRUE;
+	}
 }
 ```
 
