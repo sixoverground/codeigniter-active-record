@@ -138,11 +138,11 @@ class MY_Model extends CI_Model {
 		$data = $this->_filter_attributes($data);
 		$class_name = get_class($this);
 		$record = new $class_name();	
-		foreach ($this->columns as $column)
+		foreach ($this->columns as $key => $val)
 		{
-			$record->{$column} = $data[$column];
+			$record->{$key} = $data[$key];
 		}
-		
+				
 		// Trigger after callbacks.
 		$record->trigger('after_initialize', $record);
 		
@@ -157,26 +157,24 @@ class MY_Model extends CI_Model {
 	public function save()
 	{
 		$data = array();
-		foreach ($this->columns as $column)
+		foreach ($this->columns as $key => $val)
 		{
-			$data[$column] = $this->{$column};
+			$data[$key] = $this->{$key};
 		}
 		$data['created_at'] = date('Y-m-d H:i:s');
 		$data['updated_at'] = date('Y-m-d H:i:s');	
 
-		// Trigger before callbacks.
-		
+		// Trigger before callbacks.		
 		$this->trigger('before_save', $this);
 		$this->trigger('around_save', $this);
 		$this->trigger('before_create', $this);
 		$this->trigger('around_create', $this);
-		
-		
+			
 		$result = $this->db_conn->insert($this->table_name, $data);
 		$this->{$this->primary_key} = $this->db_conn->insert_id();
-		foreach ($this->columns as $column)
+		foreach ($this->columns as $key => $val)
 		{
-			$this->{$column} = $data[$column];
+			$this->{$key} = $data[$key];
 		}
 		$this->created_at = $data['created_at'];
 		$this->updated_at = $data['updated_at'];
@@ -208,9 +206,9 @@ class MY_Model extends CI_Model {
 		$this->trigger('around_update', $this);
 		
 		$result = $this->db_conn->update($this->table_name, $data);
-		foreach ($this->columns as $column)
+		foreach ($this->columns as $key => $val)
 		{
-			$this->{$column} = $data[$column];
+			$this->{$key} = $data[$key];
 		}
 		$this->updated_at = $data['updated_at'];
 		
@@ -336,14 +334,17 @@ class MY_Model extends CI_Model {
 	private function _filter_attributes($data = array())
 	{
 		$default_attributes = array();
-		foreach ($this->columns as $column)
+		foreach ($this->columns as $key => $val)
 		{
-			$default_attributes[$column] = '';
+			$default_attributes[$key] = $val;
 		}
 		$filtered_attributes = array();
 		foreach ($data as $key => $val)
 		{
-			if (in_array($key, $this->columns)) $filtered_attributes[$key] = $val;
+			if (array_key_exists($key, $this->columns))
+			{
+				$filtered_attributes[$key] = $val;
+			}
 		}
 		return array_merge($default_attributes, $filtered_attributes);
 	}
@@ -358,13 +359,10 @@ class MY_Model extends CI_Model {
 	{
 		$class_name = get_class($this);
 		$record = new $class_name();	
-		$record->{$this->primary_key} = $row->{$this->primary_key};
-		foreach ($this->columns as $column)
+		foreach ($row as $key => $val)
 		{
-			$record->{$column} = $row->{$column};
-		}			
-		$record->created_at = $row->created_at;
-		$record->updated_at = $row->updated_at;
+			$record->{$key} = $val;
+		}
 		
 		// Add callbacks.
 		$record->relationships = $this->relationships;
