@@ -274,6 +274,12 @@ class MY_Model extends CI_Model {
 		return $this;
 	}
 	
+	/**
+	 * Limit the number of records to return.
+	 * 
+	 * @param int $limit
+	 * @return MY_Model
+	 */
 	public function limit($limit)
 	{
 		$this->limit_value = $limit;
@@ -284,6 +290,12 @@ class MY_Model extends CI_Model {
 		return $this;	
 	}
 	
+	/**
+	 * Skip a number of records.
+	 * 
+	 * @param int $offset
+	 * @return MY_Model
+	 */
 	public function offset($offset)
 	{
 		$this->offset_value = $offset;
@@ -308,6 +320,16 @@ class MY_Model extends CI_Model {
 			$this->after_find[] = 'relate';
 		}		
 		return $this;		
+	}
+	
+	/**
+	 * Count the records in a table.
+	 * 
+	 * @return int
+	 */
+	public function count()
+	{
+		return $this->connection->count_all_results($this->table_name);
 	}
 
 	/**

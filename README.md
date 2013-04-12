@@ -101,6 +101,15 @@ foreach ($project->todos as $project_todo)
 }
 ```
 
+Calculations
+------------
+
+See how many records are in your model's table.
+
+```php
+$this->todo_model->count();
+```
+
 Callbacks/Observers
 -------------------
 
