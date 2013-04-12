@@ -9,6 +9,7 @@
  */
 class MY_Model extends CI_Model {
 	
+	// Schema properties.
 	protected $connection; // CI database connection
 	protected $table_name; // Inferred database table name
 	protected $columns = array(); // Columns to query
@@ -47,6 +48,9 @@ class MY_Model extends CI_Model {
 	// Limits
 	protected $limit_value = 0;
 	protected $offset_value = 0;
+	
+	// Validations
+	protected $validates = array();
 	
 	public function __construct()
 	{
@@ -178,6 +182,12 @@ class MY_Model extends CI_Model {
 		$data['created_at'] = date('Y-m-d H:i:s');
 		$data['updated_at'] = date('Y-m-d H:i:s');	
 
+		// Validate the model.
+		$this->run_callback('before_validation', $this);
+		$data = $this->validate($data);
+		if ($data === FALSE) return FALSE;
+		$this->run_callback('after_validation', $this);
+		
 		// Trigger before callbacks.		
 		$this->run_callback('before_save', $this);
 		$this->run_callback('around_save', $this);
@@ -212,6 +222,12 @@ class MY_Model extends CI_Model {
 		$data = $this->filter_attributes($data);
 		$data['updated_at'] = date('Y-m-d H:i:s');
 		$this->connection->where($this->primary_key, $this->{$this->primary_key});
+
+		// Validate the model.
+		$this->run_callback('before_validation', $this);
+		$data = $this->validate($data);
+		if ($data === FALSE) return FALSE;
+		$this->run_callback('after_validation', $this);
 		
 		// Trigger before callbacks.
 		$this->run_callback('before_save', $this);
@@ -413,6 +429,45 @@ class MY_Model extends CI_Model {
 				$record->{$relationship} = $this->{$options['model']}->where(array($options['primary_key'] => $record->{$this->primary_key}));
 			}
 		}
+	}
+	
+	protected function validate($data)
+	{
+		if ( ! empty($this->validates))
+		{
+			foreach ($data as $key => $val)
+			{
+				$_POST[$key] = $val;
+			}
+		
+			$this->load->library('form_validation');
+		
+			if (is_array($this->validates))
+			{
+				$this->form_validation->set_rules($this->validates);
+		
+				if ($this->form_validation->run() === TRUE)
+				{
+					return $data;
+				}
+				else
+				{
+					return FALSE;
+				}
+			}
+			else
+			{
+				if ($this->form_validation->run($this->validates) === TRUE)
+				{
+					return $data;
+				}
+				else
+				{
+					return FALSE;
+				}
+			}
+		}
+		return $data;		
 	}
 	
 	/**

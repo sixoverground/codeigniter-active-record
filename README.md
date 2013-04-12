@@ -110,8 +110,32 @@ See how many records are in your model's table.
 $this->todo_model->count();
 ```
 
-Callbacks/Observers
--------------------
+Validations
+-----------
+
+MY_Model uses CodeIgniter's built in form validation to validate data on insert.
+
+You can enable validation by setting the `$validates` instance to the usual form validation library rules array:
+
+```php
+class Todo_model extends MY_Model
+{
+	public $validates = array(
+	  array( 
+	  	'field' => 'title', 
+	    'label' => 'title',
+	    'rules' => 'required' 
+	  ),
+	);
+}
+```
+
+Anything valid in the form validation library can be used here. To find out more about the rules array, please [view the library's documentation](http://codeigniter.com/user_guide/libraries/form_validation.html#validationrulesasarray).
+
+With this array set, each call to `save()` or `update_attributes()` will validate the data before allowing  the query to be run. **Unlike the CodeIgniter validation library, this won't validate the POST data, rather, it validates the data passed directly through.**
+
+Callbacks
+---------
 
 Hook into the life cycle of your Active Record objects. Callbacks are methods that get called at certain moments of an object’s life cycle. With callbacks it is possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
 
