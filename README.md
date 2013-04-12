@@ -162,6 +162,8 @@ These are instance variables defined at the class level. They are arrays of meth
 ```php
 class Todo_model extends MY_Model {
  	public $before_create = array('check_with_wife');
+ 	
+ 	public $columns = array('okay_with_wife' => FALSE);
   
 	protected function check_with_wife($todo)
 	{
