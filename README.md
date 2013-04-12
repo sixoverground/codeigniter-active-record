@@ -3,12 +3,15 @@ codeigniter-active-record
 
 CodeIgniter base model that emulates the Ruby on Rails ActiveRecord class.
 
-Basic Use
----------
+Get Started
+-----------
 
 ```php
 // Extend MY_Model.
-class Todo_model extends MY_Model { }
+class Todo_model extends MY_Model { 
+	// Define the schema defaults.
+	public $columns = array('title' => '');
+}
 
 // Load the model.
 $this->load->model('todo_model');
@@ -16,7 +19,7 @@ $this->load->model('todo_model');
 // Find all models.
 $todos = $this->todo_model->all();
 
-// Find one model.
+// Find a single model.
 $todo = $this->todo_model->find(1);
 
 // Find models with conditions.
@@ -39,6 +42,11 @@ Installation
 Download and copy the MY\_Model.php file into your _application/core_ folder. CodeIgniter will load and initialize this class automatically for you.
 
 Extend your model classes from `MY_Model`.
+
+Ordering
+--------
+
+
 
 Callbacks/Observers
 -------------------

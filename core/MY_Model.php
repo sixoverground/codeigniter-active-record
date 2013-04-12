@@ -9,7 +9,7 @@
  */
 class MY_Model extends CI_Model {
 	
-	protected $db_conn; // CI database connection
+	protected $connection; // CI database connection
 	protected $table_name; // Inferred database table name
 	protected $columns = array(); // Columns to query
 	protected $primary_key = 'id'; // Table primary key
@@ -17,7 +17,7 @@ class MY_Model extends CI_Model {
 	// Relationship arrays.
 	protected $belongs_to = array(); // Has one model that it belongs to.
 	protected $has_many = array(); // Has many models.
-	protected $relationships = array(); // Relationships to be included
+	protected $includes_values = array(); // Relationships to be included
 	
 	// Callbacks for creation.
 	protected $before_validation = array();
@@ -53,10 +53,10 @@ class MY_Model extends CI_Model {
 		$this->load->helper('inflector');
 		
 		// Save the database connection.
-		$this->_load_db_conn();
+		$this->establish_connection();
 		
 		// Determine the database table name.
-		$this->_compute_table_name();
+		$this->compute_table_name();
 	}
 	
 	/**
@@ -67,14 +67,14 @@ class MY_Model extends CI_Model {
 	public function all()
 	{
 		$result = array();
-		$query = $this->db_conn->get($this->table_name);
+		$query = $this->connection->get($this->table_name);
 		foreach ($query->result() as $row)
 		{
-			$record = $this->_parse_row($row);
+			$record = $this->parse_row($row);
 			
 			// Trigger after callbacks.
-			$record->trigger('after_initialize', $record);
-			$record->trigger('after_find', $record);
+			$record->run_callback('after_initialize', $record);
+			$record->run_callback('after_find', $record);
 			
 			array_push($result, $record);
 		}
@@ -89,15 +89,15 @@ class MY_Model extends CI_Model {
 	 */
 	public function find($id)
 	{
-		$this->db_conn->where($this->primary_key, $id);
-		$query = $this->db_conn->get($this->table_name);
+		$this->connection->where($this->primary_key, $id);
+		$query = $this->connection->get($this->table_name);
 		foreach ($query->result() as $row)
 		{
-			$record = $this->_parse_row($row);
+			$record = $this->parse_row($row);
 			
 			// Trigger after callbacks.
-			$record->trigger('after_initialize', $record);
-			$record->trigger('after_find', $record);
+			$record->run_callback('after_initialize', $record);
+			$record->run_callback('after_find', $record);
 			
 			return $record;
 		}
@@ -113,14 +113,14 @@ class MY_Model extends CI_Model {
 	public function where($conditions)
 	{
 		$result = array();
-		$query = $this->db_conn->get_where($this->table_name, $conditions);
+		$query = $this->connection->get_where($this->table_name, $conditions);
 		foreach ($query->result() as $row)
 		{
-			$record = $this->_parse_row($row);
+			$record = $this->parse_row($row);
 			
 			// Trigger after callbacks.
-			$record->trigger('after_initialize', $record);
-			$record->trigger('after_find', $record);
+			$record->run_callback('after_initialize', $record);
+			$record->run_callback('after_find', $record);
 			
 			array_push($result, $record);
 		}
@@ -135,7 +135,7 @@ class MY_Model extends CI_Model {
 	 */
 	public function new_model($data = array())
 	{
-		$data = $this->_filter_attributes($data);
+		$data = $this->filter_attributes($data);
 		$class_name = get_class($this);
 		$record = new $class_name();	
 		foreach ($this->columns as $key => $val)
@@ -144,7 +144,7 @@ class MY_Model extends CI_Model {
 		}
 				
 		// Trigger after callbacks.
-		$record->trigger('after_initialize', $record);
+		$record->run_callback('after_initialize', $record);
 		
 		return $record;
 	}
@@ -165,13 +165,13 @@ class MY_Model extends CI_Model {
 		$data['updated_at'] = date('Y-m-d H:i:s');	
 
 		// Trigger before callbacks.		
-		$this->trigger('before_save', $this);
-		$this->trigger('around_save', $this);
-		$this->trigger('before_create', $this);
-		$this->trigger('around_create', $this);
+		$this->run_callback('before_save', $this);
+		$this->run_callback('around_save', $this);
+		$this->run_callback('before_create', $this);
+		$this->run_callback('around_create', $this);
 			
-		$result = $this->db_conn->insert($this->table_name, $data);
-		$this->{$this->primary_key} = $this->db_conn->insert_id();
+		$result = $this->connection->insert($this->table_name, $data);
+		$this->{$this->primary_key} = $this->connection->insert_id();
 		foreach ($this->columns as $key => $val)
 		{
 			$this->{$key} = $data[$key];
@@ -180,8 +180,8 @@ class MY_Model extends CI_Model {
 		$this->updated_at = $data['updated_at'];
 		
 		// Trigger after callbacks.
-		$this->trigger('after_create', $this);		
-		$this->trigger('after_save', $this);		
+		$this->run_callback('after_create', $this);		
+		$this->run_callback('after_save', $this);		
 		
 		if ($result) return $this;
 		return FALSE;
@@ -195,17 +195,17 @@ class MY_Model extends CI_Model {
 	 */
 	public function update_attributes($data = array())
 	{
-		$data = $this->_filter_attributes($data);
+		$data = $this->filter_attributes($data);
 		$data['updated_at'] = date('Y-m-d H:i:s');
-		$this->db_conn->where($this->primary_key, $this->{$this->primary_key});
+		$this->connection->where($this->primary_key, $this->{$this->primary_key});
 		
 		// Trigger before callbacks.
-		$this->trigger('before_save', $this);
-		$this->trigger('around_save', $this);
-		$this->trigger('before_update', $this);
-		$this->trigger('around_update', $this);
+		$this->run_callback('before_save', $this);
+		$this->run_callback('around_save', $this);
+		$this->run_callback('before_update', $this);
+		$this->run_callback('around_update', $this);
 		
-		$result = $this->db_conn->update($this->table_name, $data);
+		$result = $this->connection->update($this->table_name, $data);
 		foreach ($this->columns as $key => $val)
 		{
 			$this->{$key} = $data[$key];
@@ -213,8 +213,8 @@ class MY_Model extends CI_Model {
 		$this->updated_at = $data['updated_at'];
 		
 		// Trigger after callbacks.
-		$this->trigger('after_update', $this);
-		$this->trigger('after_save', $this);
+		$this->run_callback('after_update', $this);
+		$this->run_callback('after_save', $this);
 		
 		if ($result) return $this;
 		return FALSE;
@@ -225,16 +225,32 @@ class MY_Model extends CI_Model {
 	 */
 	public function destroy()
 	{
-		$this->db_conn->where($this->primary_key, $this->{$this->primary_key});
+		$this->connection->where($this->primary_key, $this->{$this->primary_key});
 
 		// Trigger before callbacks.
-		$this->trigger('before_destroy', $this);
-		$this->trigger('around_destroy', $this);
+		$this->run_callback('before_destroy', $this);
+		$this->run_callback('around_destroy', $this);
 		
-		$this->db_conn->delete($this->table_name);
+		$this->connection->delete($this->table_name);
 
 		// Trigger after callbacks.
-		$this->trigger('after_destroy', $this);
+		$this->run_callback('after_destroy', $this);
+	}
+	
+	public function order($criteria, $order_by = 'ASC')
+	{
+		if (is_array($criteria))
+		{
+			foreach ($criteria as $key => $value)
+			{
+				$this->connection->order_by($key, $value);
+			}
+		}
+		else
+		{
+			$this->connection->order_by($criteria, $order_by);
+		}
+		return $this;
 	}
 	
 	/**
@@ -242,15 +258,33 @@ class MY_Model extends CI_Model {
 	 */
 	public function includes($relationship)
 	{
-		$this->relationships[] = $relationship;
-		if ( ! in_array('_relate', $this->after_find))
+		$this->includes_values[] = $relationship;
+		if ( ! in_array('relate', $this->after_find))
 		{
-			$this->after_find[] = '_relate';
+			$this->after_find[] = 'relate';
 		}		
 		return $this;		
 	}
+
+	/**
+	 * Trigger a callback and call its observers.
+	 *
+	 * @param array $callback
+	 * @param MY_Model|boolean $record
+	 * @param boolean $last
+	 */
+	protected function run_callback($callback, $record = FALSE, $last = TRUE)
+	{
+		if (isset($this->$callback) && is_array($this->$callback))
+		{
+			foreach ($this->$callback as $method)
+			{
+				call_user_func_array(array($this, $method), array($record, $last));
+			}
+		}
+	}
 	
-	private function _relate($record)
+	protected function relate($record)
 	{		
 		// Connect all belongs to relationships.
 		foreach ($this->belongs_to as $key => $value)
@@ -268,7 +302,7 @@ class MY_Model extends CI_Model {
       }
 
       // Only associate relationships that were included.
-      if (in_array($relationship, $this->relationships))
+      if (in_array($relationship, $this->includes_values))
       {
       	$this->load->model($options['model']);
       	$record->{$relationship} = $this->{$options['model']}->find($record->{$options['primary_key']});
@@ -291,7 +325,7 @@ class MY_Model extends CI_Model {
 			}
 		
 			// Only associate relationships that were included.
-			if (in_array($relationship, $this->relationships))
+			if (in_array($relationship, $this->includes_values))
 			{
 				$this->load->model($options['model']);
 				$record->{$relationship} = $this->{$options['model']}->where(array($options['primary_key'] => $record->{$this->primary_key}));
@@ -302,22 +336,22 @@ class MY_Model extends CI_Model {
 	/**
 	 * Load the database library.
 	 */
-	private function _load_db_conn()
+	protected function establish_connection()
 	{
-		if ( ! $this->db_conn)
+		if ( ! $this->connection)
 		{
-			$this->db_conn = $this->load->database('default', TRUE);
+			$this->connection = $this->load->database('default', TRUE);
 		}
 		else
 		{
-			$this->db_conn = $this->load->database($this->db_conn, TRUE);
+			$this->connection = $this->load->database($this->connection, TRUE);
 		}
 	}
 	
 	/**
 	 * Calculate the table name based on the model class name.
 	 */
-	private function _compute_table_name()
+	protected function compute_table_name()
 	{
 		if ( ! $this->table_name)
 		{
@@ -331,7 +365,7 @@ class MY_Model extends CI_Model {
 	 * @param array $data
 	 * @return array
 	 */
-	private function _filter_attributes($data = array())
+	protected function filter_attributes($data = array())
 	{
 		$default_attributes = array();
 		foreach ($this->columns as $key => $val)
@@ -355,7 +389,7 @@ class MY_Model extends CI_Model {
 	 * @param array $row
 	 * @return MY_Model
 	 */
-	private function _parse_row($row)
+	protected function parse_row($row)
 	{
 		$class_name = get_class($this);
 		$record = new $class_name();	
@@ -364,30 +398,15 @@ class MY_Model extends CI_Model {
 			$record->{$key} = $val;
 		}
 		
-		// Add callbacks.
-		$record->relationships = $this->relationships;
+		// Clone scoped includes.
+		$record->includes_values = $this->includes_values;
+		
+		// Clone callbacks.
 		$record->after_find = $this->after_find;
 		
 		return $record;
 	}
 	
-	/**
-	 * Trigger a callback and call its observers.
-	 * 
-	 * @param array $callback
-	 * @param MY_Model|boolean $record
-	 * @param boolean $last
-	 */
-	public function trigger($callback, $record = FALSE, $last = TRUE)
-	{
-		if (isset($this->$callback) && is_array($this->$callback))
-		{
-			foreach ($this->$callback as $method)
-			{
-				call_user_func_array(array($this, $method), array($record, $last));
-			}
-		}
-	}
 	
 }
 
