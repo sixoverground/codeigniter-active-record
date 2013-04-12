@@ -237,6 +237,13 @@ class MY_Model extends CI_Model {
 		$this->run_callback('after_destroy', $this);
 	}
 	
+	/**
+	 * Set the order for the query.
+	 * 
+	 * @param array|string $criteria
+	 * @param string $order_by
+	 * @return MY_Model
+	 */
 	public function order($criteria, $order_by = 'ASC')
 	{
 		if (is_array($criteria))
@@ -254,7 +261,10 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
-	 * Include a relationship
+	 * Include a relationship.
+	 * 
+	 * @param string $relationship
+	 * @return MY_Model
 	 */
 	public function includes($relationship)
 	{
@@ -284,6 +294,11 @@ class MY_Model extends CI_Model {
 		}
 	}
 	
+	/**
+	 * Setup desired associations for the model.
+	 * 
+	 * @param MY_Model $record
+	 */
 	protected function relate($record)
 	{		
 		// Connect all belongs to relationships.
@@ -334,7 +349,7 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
-	 * Load the database library.
+	 * Load the database library and keep the connection.
 	 */
 	protected function establish_connection()
 	{

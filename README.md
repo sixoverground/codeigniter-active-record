@@ -46,7 +46,11 @@ Extend your model classes from `MY_Model`.
 Ordering
 --------
 
+To retrieve records in a specific order, use the order method.
 
+```php
+$todos = $this->todo_model->order('title')->all();
+```
 
 Callbacks/Observers
 -------------------
