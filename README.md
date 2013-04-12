@@ -170,5 +170,10 @@ class Todo_model extends MY_Model {
 		$this->okay_with_wife = TRUE;
 	}
 }
+
+$todo = $this->todo_model->new_model();
+echo $todo->okay_with_wife; // FALSE
+$todo->save();
+echo $todo->okay_with_wife; // TRUE
 ```
 
