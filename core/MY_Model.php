@@ -345,7 +345,7 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
-	 * Include a relationship.
+	 * Eager load a relationship.
 	 * 
 	 * @param string $relationship
 	 * @return MY_Model
@@ -358,6 +358,19 @@ class MY_Model extends CI_Model {
 			$this->after_find[] = 'relate';
 		}		
 		return $this;		
+	}
+	
+	/**
+	 * Load a relationship.
+	 * 
+	 * @param string $name
+	 * @return MY_Model
+	 */
+	public function load_association($name)
+	{
+		$this->includes($name);
+		$this->relate($this);
+		return $this;	
 	}
 	
 	/**
@@ -425,6 +438,7 @@ class MY_Model extends CI_Model {
       if (in_array($relationship, $this->includes_values))
       {
       	$this->load->model($options['model']);
+      	// TODO: Should check to see if relationship was already loaded.
       	$record->{$relationship} = $this->{$options['model']}->find($record->{$options['primary_key']});
     	}
 		}
@@ -448,6 +462,7 @@ class MY_Model extends CI_Model {
 			if (in_array($relationship, $this->includes_values))
 			{
 				$this->load->model($options['model']);
+      	// TODO: Should check to see if relationship was already loaded.
 				$record->{$relationship} = $this->{$options['model']}->where(array($options['primary_key'] => $record->{$this->primary_key}));
 			}
 		}
