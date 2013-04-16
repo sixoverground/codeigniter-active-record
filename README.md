@@ -43,6 +43,27 @@ Download and copy the MY\_Model.php file into your _application/core_ folder. Co
 
 Extend your model classes from `MY_Model`.
 
+Model Schema
+------------
+
+You can define the database columns in the model class.
+
+```php
+class Todo_model extends MY_Model { 
+	// Define the primary key (defaults to 'id').
+	public $primary_key = 'todo_id';
+	
+	// Define the field defaults.
+	public $columns = array(
+		'title' => '',
+		'okay_with_wife' => FALSE
+	);
+	
+	// Add timestamps 'created_at' and 'updated_at'.
+	public $timestamps = TRUE;
+}
+```
+
 Ordering
 --------
 

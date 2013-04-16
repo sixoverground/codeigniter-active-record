@@ -14,6 +14,7 @@ class MY_Model extends CI_Model {
 	protected $table_name; // Inferred database table name
 	protected $columns = array(); // Columns to query
 	protected $primary_key = 'id'; // Table primary key
+	protected $timestamps = FALSE; // created_at and udpated_at
 	
 	// Relationship arrays.
 	protected $belongs_to = array(); // Has one model that it belongs to.
@@ -185,8 +186,13 @@ class MY_Model extends CI_Model {
 		{
 			$data[$key] = $this->{$key};
 		}
-		$data['created_at'] = date('Y-m-d H:i:s');
-		$data['updated_at'] = date('Y-m-d H:i:s');	
+		
+		// Add timestamps.
+		if ($this->timestamps)
+		{
+			$data['created_at'] = date('Y-m-d H:i:s');
+			$data['updated_at'] = date('Y-m-d H:i:s');
+		}
 
 		// Validate the model.
 		$this->run_callback('before_validation', $this);
@@ -206,8 +212,13 @@ class MY_Model extends CI_Model {
 		{
 			$this->{$key} = $data[$key];
 		}
-		$this->created_at = $data['created_at'];
-		$this->updated_at = $data['updated_at'];
+		
+		// Set timestamps.
+		if ($this->timestamps)
+		{
+			$this->created_at = $data['created_at'];
+			$this->updated_at = $data['updated_at'];
+		}
 		
 		// Trigger after callbacks.
 		$this->run_callback('after_create', $this);		
@@ -226,7 +237,10 @@ class MY_Model extends CI_Model {
 	public function update_attributes($data = array())
 	{
 		$data = $this->filter_attributes($data);
-		$data['updated_at'] = date('Y-m-d H:i:s');
+		
+		// Add timestamps.
+		if ($this->timestamps) $data['updated_at'] = date('Y-m-d H:i:s');
+		
 		$this->connection->where($this->primary_key, $this->{$this->primary_key});
 
 		// Validate the model.
@@ -246,7 +260,9 @@ class MY_Model extends CI_Model {
 		{
 			$this->{$key} = $data[$key];
 		}
-		$this->updated_at = $data['updated_at'];
+		
+		// Set timestamps.
+		if ($this->timestamps) $this->updated_at = $data['updated_at'];
 		
 		// Trigger after callbacks.
 		$this->run_callback('after_update', $this);
