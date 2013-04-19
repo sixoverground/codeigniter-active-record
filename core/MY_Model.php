@@ -103,21 +103,33 @@ class MY_Model extends CI_Model {
 	 */
 	public function find($id)
 	{
+		return $this->find_by($this->primary_key, $id);
+	}
+	
+	/**
+	 * Get a single row from the table based on the column value.
+	 * 
+	 * @param string $column
+	 * @param integer $id
+	 * @return MY_Model|boolean
+	 */
+	public function find_by($column, $value)
+	{
 		// Trigger before callbacks.
 		$this->run_callback('before_find');
 		
-		$this->connection->where($this->primary_key, $id);
+		$this->connection->where($column, $value);
 		$query = $this->connection->get($this->table_name);
 		$this->reset();
 		
 		foreach ($query->result() as $row)
 		{
 			$record = $this->parse_row($row);
-			
+				
 			// Trigger after callbacks.
 			$record->run_callback('after_initialize', $record);
 			$record->run_callback('after_find', $record);
-			
+				
 			return $record;
 		}
 		return FALSE;
