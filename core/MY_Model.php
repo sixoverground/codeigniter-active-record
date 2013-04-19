@@ -181,6 +181,7 @@ class MY_Model extends CI_Model {
 	 */
 	public function save()
 	{
+		// Pull properties into data.
 		$data = array();
 		foreach ($this->columns as $key => $val)
 		{
@@ -205,6 +206,12 @@ class MY_Model extends CI_Model {
 		$this->run_callback('around_save', $this);
 		$this->run_callback('before_create', $this);
 		$this->run_callback('around_create', $this);
+		
+		// Update data with anything changed from callbacks.
+		foreach ($this->columns as $key => $val)
+		{
+			$data[$key] = $this->{$key};
+		}		
 			
 		$result = $this->connection->insert($this->table_name, $data);
 		$this->{$this->primary_key} = $this->connection->insert_id();
@@ -287,6 +294,15 @@ class MY_Model extends CI_Model {
 
 		// Trigger after callbacks.
 		$this->run_callback('after_destroy', $this);
+	}
+
+	/**
+	 * Prevent CodeIgniter from displaying an error.
+	 *
+	 * @return string
+	 */
+	public function __toString(){
+		return 'MY_Model';
 	}
 	
 	/**
