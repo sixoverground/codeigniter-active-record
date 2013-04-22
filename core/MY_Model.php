@@ -110,7 +110,7 @@ class MY_Model extends CI_Model {
 	 * Get a single row from the table based on the column value.
 	 * 
 	 * @param string $column
-	 * @param integer $id
+	 * @param mixed $value
 	 * @return MY_Model|boolean
 	 */
 	public function find_by($column, $value)
@@ -321,7 +321,7 @@ class MY_Model extends CI_Model {
 	}
 
 	/**
-	 * Prevent CodeIgniter from displaying an error.
+	 * Prevent CodeIgniter parser from displaying an error.
 	 *
 	 * @return string
 	 */
@@ -423,6 +423,26 @@ class MY_Model extends CI_Model {
 		return $this->connection->count_all_results($this->table_name);
 	}
 
+	/**
+	 * Get a single child object based on the key provided.
+	 *
+	 * @param string $relationship
+	 * @param string $column
+	 * @param mixed $value
+	 * @return MY_Model|boolean
+	 */
+	public function find_child_by($relationship, $column, $value)
+	{
+		foreach ($this->{$relationship} as $relation)
+		{
+			if ($relation->{$column} == $value)
+			{
+				return $relation;
+			}
+		}
+		return FALSE;
+	}
+	
 	/**
 	 * Trigger a callback and call its observers.
 	 *
