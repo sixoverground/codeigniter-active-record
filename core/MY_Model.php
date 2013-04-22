@@ -172,7 +172,7 @@ class MY_Model extends CI_Model {
 	 */
 	public function new_model($data = array())
 	{
-		$data = $this->filter_attributes($data);
+		$data = $this->initialize_attributes($data);
 		$class_name = get_class($this);
 		$record = new $class_name();	
 		foreach ($this->columns as $key => $val)
@@ -256,6 +256,12 @@ class MY_Model extends CI_Model {
 	public function update_attributes($data = array())
 	{
 		$data = $this->filter_attributes($data);
+
+		// Pull data into properties.
+		foreach ($data as $key => $val)
+		{
+			$this->{$key} = $data[$key];
+		}
 		
 		// Add timestamps.
 		if ($this->timestamps) $data['updated_at'] = date('Y-m-d H:i:s');
@@ -273,6 +279,12 @@ class MY_Model extends CI_Model {
 		$this->run_callback('around_save', $this);
 		$this->run_callback('before_update', $this);
 		$this->run_callback('around_update', $this);
+
+		// Update data with anything changed from callbacks.
+		foreach ($this->columns as $key => $val)
+		{
+			$data[$key] = $this->{$key};
+		}
 		
 		$result = $this->connection->update($this->table_name, $data);
 		foreach ($this->columns as $key => $val)
@@ -560,14 +572,14 @@ class MY_Model extends CI_Model {
 			$this->table_name = plural(preg_replace('/(_m|_model)?$/', '', strtolower(get_class($this))));
 		}
 	}
-	
+
 	/**
-	 * Filter all unnecessary fields from the data, based on the model columns.
-	 * 
+	 * Set default attributes.
+	 *
 	 * @param array $data
 	 * @return array
 	 */
-	protected function filter_attributes($data = array())
+	protected function initialize_attributes($data = array())
 	{
 		$default_attributes = array();
 		foreach ($this->columns as $key => $val)
@@ -583,6 +595,25 @@ class MY_Model extends CI_Model {
 			}
 		}
 		return array_merge($default_attributes, $filtered_attributes);
+	}
+	
+	/**
+	 * Filter all unnecessary fields from the data, based on the model columns.
+	 * 
+	 * @param array $data
+	 * @return array
+	 */
+	protected function filter_attributes($data = array())
+	{
+		$filtered_attributes = array();
+		foreach ($data as $key => $val)
+		{
+			if (array_key_exists($key, $this->columns))
+			{
+				$filtered_attributes[$key] = $val;
+			}
+		}
+		return $filtered_attributes;
 	}
 	
 	/**
