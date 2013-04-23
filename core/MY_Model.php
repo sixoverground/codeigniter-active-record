@@ -424,6 +424,18 @@ class MY_Model extends CI_Model {
 	}
 
 	/**
+	 * Get a single child object based on the primary key.
+	 *
+	 * @param string $relationship
+	 * @param mixed $id
+	 * @return MY_Model|boolean
+	 */
+	public function find_child($relationship, $id)
+	{
+		return $this->find_child_by($relationship, $this->primary_key, $id);
+	}
+
+	/**
 	 * Get a single child object based on the key provided.
 	 *
 	 * @param string $relationship

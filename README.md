@@ -1,7 +1,7 @@
 codeigniter-active-record
 =========================
 
-CodeIgniter base model that emulates the Ruby on Rails ActiveRecord class.
+CodeIgniter base model that emulates the Ruby on Rails ActiveRecord class. Clean up your controllers, and put all your boilerplate code into your core Model class.
 
 Get Started
 -----------
@@ -63,6 +63,30 @@ class Todo_model extends MY_Model {
 	public $timestamps = TRUE;
 }
 ```
+Retrieving Objects
+------------------
+
+The base model provides several finder methods to retrieve your objects.
+
+```php
+// Retrieve a single object using a primary key. By default, the primary key is set to 'id'.
+$todo = $this->todo_model->find(1);
+
+// To set the primary key to another column name, define $primary_key in your model.
+class Todo_model extends MY_Model { 
+	public $primary_key = 'todo_id';
+}
+```
+
+Conditions
+----------
+
+The where method allows you to specify conditions to limit the records returned. Any condition acceptable by the CodeIgniter where method can be used.
+
+```php
+// Use a hash to retrieve all objects with the complete parameter set to true.
+$todos = $this->todo_model->where(array('complete' => TRUE));
+```
 
 Ordering
 --------
@@ -118,6 +142,28 @@ foreach ($project->todos as $project_todo)
 {
 	echo $project_todo->title;
 }
+```
+
+Dynamic Finders
+---------------
+
+To find a single object by any column other than the primary key, use the find_by method.
+
+```php
+// Find a single todo with the title specified.
+$todo = $this->todo_model->find_by('title', 'Take out the trash');
+```
+
+Finders and dynamic finders can also be used on relationships.
+```php
+// Eager load the project with its todos.
+$project = $this->project_model->includes('todos')->find(1);
+
+// Find a project's todo by its primary key.
+$todo = $project->find_child('todos', 1);
+
+// Find a project's todo by a specific column.
+$todo = $project->find_child_by('todos', 'title', 'Clean dishes');
 ```
 
 Calculations
