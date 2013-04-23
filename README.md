@@ -22,9 +22,6 @@ $todos = $this->todo_model->all();
 // Find a single model.
 $todo = $this->todo_model->find(1);
 
-// Find models with conditions.
-$todos = $this->todo_model->where('title', 'Take out the trash');
-
 // Create a model.
 $todo = $this->todo_model->new_model(array('title' => 'My new todo'));
 $todo->save();
@@ -69,7 +66,7 @@ Retrieving Objects
 The base model provides several finder methods to retrieve your objects.
 
 ```php
-// Retrieve a single object using a primary key. By default, the primary key is set to 'id'.
+// Retrieve a single object using the primary key. By default, the primary key is set to 'id'.
 $todo = $this->todo_model->find(1);
 
 // To set the primary key to another column name, define $primary_key in your model.
@@ -84,7 +81,7 @@ Conditions
 The where method allows you to specify conditions to limit the records returned. Any condition acceptable by the CodeIgniter where method can be used.
 
 ```php
-// Use a hash to retrieve all objects with the complete parameter set to true.
+// Use a hash to retrieve all complete todos.
 $todos = $this->todo_model->where(array('complete' => TRUE));
 ```
 
@@ -159,10 +156,10 @@ Finders and dynamic finders can also be used on relationships.
 // Eager load the project with its todos.
 $project = $this->project_model->includes('todos')->find(1);
 
-// Find a project's todo by its primary key.
+// Find the project's desired todo by its primary key.
 $todo = $project->find_child('todos', 1);
 
-// Find a project's todo by a specific column.
+// Find the project's desired todo by a specific column.
 $todo = $project->find_child_by('todos', 'title', 'Clean dishes');
 ```
 
