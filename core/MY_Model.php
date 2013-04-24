@@ -188,7 +188,6 @@ class MY_Model extends CI_Model {
 		// Add timestamps.
 		if ($this->timestamps)
 		{
-			$data['created_at'] = date('Y-m-d H:i:s');
 			$data['updated_at'] = date('Y-m-d H:i:s');
 		}
 
@@ -209,9 +208,21 @@ class MY_Model extends CI_Model {
 		{
 			$data[$key] = $this->{$key};
 		}		
-			
-		$result = $this->connection->insert($this->table_name, $data);
-		$this->{$this->primary_key} = $this->connection->insert_id();
+		
+		if ($this->{$this->primary_key})
+		{
+			// Save an existing record.
+			$this->connection->where($this->primary_key, $this->{$this->primary_key});
+			$result = $this->connection->update($this->table_name, $data);
+		}
+		else
+		{
+			// Insert a new record.
+			if ($this->timestamps) $data['created_at'] = date('Y-m-d H:i:s');			
+			$result = $this->connection->insert($this->table_name, $data);
+			$this->{$this->primary_key} = $this->connection->insert_id();
+			if ($this->timestamps) $this->created_at = $data['created_at'];
+		}
 		foreach ($this->columns as $key => $val)
 		{
 			$this->{$key} = $data[$key];
@@ -220,7 +231,6 @@ class MY_Model extends CI_Model {
 		// Set timestamps.
 		if ($this->timestamps)
 		{
-			$this->created_at = $data['created_at'];
 			$this->updated_at = $data['updated_at'];
 		}
 		
