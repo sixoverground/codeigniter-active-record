@@ -84,12 +84,7 @@ class MY_Model extends CI_Model {
 		
 		foreach ($query->result() as $row)
 		{
-			$record = $this->parse_row($row);
-			
-			// Trigger after callbacks.
-			$record->run_callback('after_initialize', $record);
-			$record->run_callback('after_find', $record);
-			
+			$record = $this->parse_row($row);			
 			array_push($result, $record);
 		}
 		return $result;
@@ -125,11 +120,6 @@ class MY_Model extends CI_Model {
 		foreach ($query->result() as $row)
 		{
 			$record = $this->parse_row($row);
-				
-			// Trigger after callbacks.
-			$record->run_callback('after_initialize', $record);
-			$record->run_callback('after_find', $record);
-				
 			return $record;
 		}
 		return FALSE;
@@ -153,12 +143,7 @@ class MY_Model extends CI_Model {
 		
 		foreach ($query->result() as $row)
 		{
-			$record = $this->parse_row($row);
-			
-			// Trigger after callbacks.
-			$record->run_callback('after_initialize', $record);
-			$record->run_callback('after_find', $record);
-			
+			$record = $this->parse_row($row);			
 			array_push($result, $record);
 		}
 		return $result;
@@ -668,6 +653,10 @@ class MY_Model extends CI_Model {
 		
 		// Clone callbacks.
 		$record->after_find = $this->after_find;
+
+		// Trigger after callbacks.
+		$record->run_callback('after_initialize', $record);
+		$record->run_callback('after_find', $record);
 		
 		return $record;
 	}
