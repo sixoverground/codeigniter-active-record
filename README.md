@@ -189,13 +189,21 @@ class Todo_model extends MY_Model {
 		),
 	);
 }
+
+// Models will not be saved if they don't pass validation.
+$todo = $this->todo_model->new_model();
+$todo->save(); // FALSE
+$todo->title = 'Wash the dishes.';
+$todo->save(); // TRUE
+
+// To bypass validation, pass options with validate set to FALSE.
+$todo = $this->todo_model->new_model();
+$todo->save(array('validate' => FALSE)); // TRUE
 ```
 
 Anything valid in the form validation library can be used here. To find out more about the rules array, please [view the library's documentation](http://codeigniter.com/user_guide/libraries/form_validation.html#validationrulesasarray).
 
 With this array set, each call to `save()` or `update_attributes()` will validate the data before allowing  the query to be run. 
-
-**Unlike the CodeIgniter validation library, this won't validate the POST data, rather, it validates the data passed directly through.**
 
 Callbacks
 ---------
