@@ -174,9 +174,10 @@ class MY_Model extends CI_Model {
 	/**
 	 * Insert a record in the table.
 	 * 
+	 * @property array $options
 	 * @return MY_Model|boolean
 	 */
-	public function save()
+	public function save($options = array('validate' => TRUE))
 	{
 		// Pull properties into data.
 		$data = array();
@@ -192,10 +193,12 @@ class MY_Model extends CI_Model {
 		}
 
 		// Validate the model.
-		$this->run_callback('before_validation', $this);
-		$data = $this->validate($data);
-		if ($data === FALSE) return FALSE;
-		$this->run_callback('after_validation', $this);
+		if ($options['validate']) {
+			$this->run_callback('before_validation', $this);
+			$data = $this->validate($data);
+			if ($data === FALSE) return FALSE;
+			$this->run_callback('after_validation', $this);
+		}
 		
 		// Trigger before callbacks.		
 		$this->run_callback('before_save', $this);
@@ -209,7 +212,7 @@ class MY_Model extends CI_Model {
 			$data[$key] = $this->{$key};
 		}		
 		
-		if ($this->{$this->primary_key})
+		if (isset($this->{$this->primary_key}))
 		{
 			// Save an existing record.
 			$this->connection->where($this->primary_key, $this->{$this->primary_key});
