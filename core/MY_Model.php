@@ -454,6 +454,48 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
+	 * Convert the model to a friendly JSON format.
+	 *
+	 * @return string
+	 */
+	public function to_json()
+	{
+		// Add public columns to array.
+		$output = array();
+		$output[$this->primary_key] = $this->{$this->primary_key};
+		foreach ($this->columns as $key => $val)
+		{
+			$output[$key] = $this->{$key};
+		}
+		if ($this->timestamps)
+		{
+			$output['created_at'] = $this->created_at;
+			$output['updated_at'] = $this->updated_at;
+		}
+		
+		// Add belongs to relationships if they exist.
+		foreach ($this->belongs_to as $relationship)
+		{
+			if (isset($this->{$relationship}))
+			{
+				$output[$relationship] = $this->{$relationship}->to_json();
+			}
+		}
+		
+		// Add has many relationships if they exist.
+		foreach ($this->has_many as $relationship)
+		{
+			$this->{$relationship} = array();
+			foreach ($this->{$relationship} as $child)
+			{
+				array_push($this->{$relationship}, $child->to_json());
+			}			
+		}
+		
+		return $output;
+	}
+	
+	/**
 	 * Trigger a callback and call its observers.
 	 *
 	 * @param array $callback
