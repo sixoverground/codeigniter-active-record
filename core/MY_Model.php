@@ -328,6 +328,28 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
+	 * Get the first model in the table.
+	 * 
+	 * @return MY_Model
+	 */
+	public function first()
+	{
+		// Trigger before callbacks.
+		$this->run_callback('before_find');
+		
+		$this->connection->limit(1);
+		$query = $this->connection->get($this->table_name);
+		$this->reset();
+		
+		foreach ($query->result() as $row)
+		{
+			$record = $this->parse_row($row);
+			return $record;
+		}
+		return FALSE;
+	}
+	
+	/**
 	 * Set the order for the query.
 	 * 
 	 * @param array|string $criteria
@@ -347,6 +369,12 @@ class MY_Model extends CI_Model {
 		{
 			$this->connection->order_by($criteria, $order_by);
 		}
+		return $this;
+	}
+	
+	public function group($group)
+	{
+		$this->connection->group_by($group);
 		return $this;
 	}
 	
