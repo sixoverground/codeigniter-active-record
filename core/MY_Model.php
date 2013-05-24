@@ -19,6 +19,7 @@ class MY_Model extends CI_Model {
 	// Relationship arrays.
 	protected $belongs_to = array(); // Has one model that it belongs to.
 	protected $has_many = array(); // Has many models.
+	protected $has_and_belongs_to_many = array(); // Has many models and belongs to many models.
 	protected $includes_values = array(); // Relationships to be included
 	
 	// Callbacks for creation.
@@ -427,6 +428,73 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
+	 * Perform a join.
+	 * 
+	 * @param string $table
+	 * @param string $cond
+	 * @param string $type
+	 * @return MY_Model
+	 */
+	public function joins($table, $cond, $type = '')
+	{
+		$this->connection->join($table, $cond, $type);
+		return $this;
+	}
+	
+	/**
+	 * Add an associated model to this model.
+	 * 
+	 * @param string $association
+	 * @param MY_Model $object
+	 */
+	public function add($association, $object)
+	{
+		// Determine table and key names.
+		$table1 = $this->table_name;
+		$table2 = $association;
+		$key1 = singular($table1) . '_id';
+		$key2 = singular($table2) . '_id';
+		if (strcmp($table1, $table2) < 0) $join_table = $table1 . '_' . $table2;
+		else $join_table = $table2 . '_' . $table1;
+		
+		// Insert the join table record.
+		$this->connection->insert($join_table, array(
+			$key1 => $this->{$this->primary_key}, 
+			$key2 => $object->{$object->primary_key}
+		));
+		
+		// Add the object to the model association.
+		if ( ! isset($this->{$association}))
+		{
+			$this->{$association} = array();
+		}
+		array_push($this->{$association}, $object);
+		
+		return TRUE;
+	}
+	
+	public function remove($association, $object)
+	{
+		// Determine table and key names.
+		$table1 = $this->table_name;
+		$table2 = $association;
+		$key1 = singular($table1) . '_id';
+		$key2 = singular($table2) . '_id';
+		if (strcmp($table1, $table2) < 0) $join_table = $table1 . '_' . $table2;
+		else $join_table = $table2 . '_' . $table1;
+		
+		// Delete the join table record.
+		$this->connection->delete($join_table, array(
+			$key1 => $this->{$this->primary_key},
+			$key2 => $object->{$object->primary_key}
+		));
+		
+		// TODO: Remove object from association array.
+		
+		return TRUE;
+	}
+	
+	/**
 	 * Load a relationship.
 	 * 
 	 * @param string $name
@@ -604,6 +672,49 @@ class MY_Model extends CI_Model {
 				$this->load->model($options['model']);
       	// TODO: Should check to see if relationship was already loaded.
 				$record->{$relationship} = $this->{$options['model']}->where(array($options['primary_key'] => $record->{$this->primary_key}));
+			}
+		}
+		
+		// Connect all has and belongs to many relationships.
+		foreach ($this->has_and_belongs_to_many as $key => $value)
+		{
+			if (is_string($value))
+			{
+				$relationship = $value;
+				$options = array('primary_key' => singular($this->table_name) . '_id', 'model' => singular($value) . '_model');
+			}
+			else
+			{
+				$relationship = $key;
+				$options = $value;
+			}
+			
+			if (in_array($relationship, $this->includes_values))
+			{
+				$this->load->model($options['model']);
+				$table1 = $this->table_name;
+				$table2 = $this->{$options['model']}->table_name;
+				$key1 = $options['primary_key'];
+				$key2 = singular($table2) . '_id';
+				if (strcmp($table1, $table2) < 0) $join_table = $table1 . '_' . $table2;
+				else $join_table = $table2 . '_' . $table1;
+				$join_model = $this->{$options['model']};
+				$join1_str = $join_table . '.' . $key1 . ' = ' . $table1 . '.' . $this->primary_key;
+				$join2_str = $join_table . '.' . $key2 . ' = ' . $table2 . '.' . $join_model->primary_key;
+				$where_str = $table1 . '.' . $this->primary_key . ' = ' . $record->{$this->primary_key};
+				
+				//$record->{$relationship} = $join_model->joins($join_table, $join2_str)->joins($this->table_name, $join1_str)->where($where_str);
+				
+				$sql = "SELECT $table2.* FROM $table2 JOIN $join_table ON $join2_str JOIN $this->table_name ON $join1_str WHERE $where_str";
+				
+				$record->{$relationship} = array();
+				$query = $this->connection->query($sql);
+				foreach ($query->result() as $row)
+				{
+					$association = $join_model->parse_row($row);
+					array_push($record->{$relationship}, $association);
+				}
+				
 			}
 		}
 	}
