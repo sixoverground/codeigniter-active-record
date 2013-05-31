@@ -54,6 +54,9 @@ class MY_Model extends CI_Model {
 	// Validations
 	protected $validates = array();
 	
+	// Logging
+	protected $logger = FALSE; // Log all database queries.
+	
 	public function __construct()
 	{
 		parent::__construct();
@@ -81,6 +84,7 @@ class MY_Model extends CI_Model {
 		$this->run_callback('before_find');
 		
 		$query = $this->connection->get($this->table_name);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		$this->reset();
 		
 		foreach ($query->result() as $row)
@@ -88,6 +92,7 @@ class MY_Model extends CI_Model {
 			$record = $this->parse_row($row);			
 			array_push($result, $record);
 		}
+		
 		return $result;
 	}
 	
@@ -116,6 +121,7 @@ class MY_Model extends CI_Model {
 		
 		$this->connection->where($column, $value);
 		$query = $this->connection->get($this->table_name);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		$this->reset();
 		
 		foreach ($query->result() as $row)
@@ -140,6 +146,7 @@ class MY_Model extends CI_Model {
 		$this->run_callback('before_find');
 		
 		$query = $this->connection->get_where($this->table_name, $conditions);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		$this->reset();
 		
 		foreach ($query->result() as $row)
@@ -218,12 +225,14 @@ class MY_Model extends CI_Model {
 			// Save an existing record.
 			$this->connection->where($this->primary_key, $this->{$this->primary_key});
 			$result = $this->connection->update($this->table_name, $data);
+			if ($this->logger) log_message('debug', $this->connection->last_query());
 		}
 		else
 		{
 			// Insert a new record.
 			if ($this->timestamps) $data['created_at'] = date('Y-m-d H:i:s');			
 			$result = $this->connection->insert($this->table_name, $data);
+			if ($this->logger) log_message('debug', $this->connection->last_query());
 			$this->{$this->primary_key} = $this->connection->insert_id();
 			if ($this->timestamps) $this->created_at = $data['created_at'];
 		}
@@ -266,7 +275,7 @@ class MY_Model extends CI_Model {
 		if ($this->timestamps) $data['updated_at'] = date('Y-m-d H:i:s');
 		
 		$this->connection->where($this->primary_key, $this->{$this->primary_key});
-
+		
 		// Validate the model.
 		$this->run_callback('before_validation', $this);
 		$data = $this->validate($data);
@@ -286,6 +295,7 @@ class MY_Model extends CI_Model {
 		}
 		
 		$result = $this->connection->update($this->table_name, $data);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		foreach ($this->columns as $key => $val)
 		{
 			$this->{$key} = $data[$key];
@@ -314,7 +324,8 @@ class MY_Model extends CI_Model {
 		$this->run_callback('around_destroy', $this);
 		
 		$this->connection->delete($this->table_name);
-
+		if ($this->logger) log_message('debug', $this->connection->last_query());
+		
 		// Trigger after callbacks.
 		$this->run_callback('after_destroy', $this);
 	}
@@ -340,6 +351,7 @@ class MY_Model extends CI_Model {
 		
 		$this->connection->limit(1);
 		$query = $this->connection->get($this->table_name);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		$this->reset();
 		
 		foreach ($query->result() as $row)
@@ -462,6 +474,7 @@ class MY_Model extends CI_Model {
 			$key1 => $this->{$this->primary_key}, 
 			$key2 => $object->{$object->primary_key}
 		));
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		
 		// Add the object to the model association.
 		if ( ! isset($this->{$association}))
@@ -488,6 +501,7 @@ class MY_Model extends CI_Model {
 			$key1 => $this->{$this->primary_key},
 			$key2 => $object->{$object->primary_key}
 		));
+		if ($this->logger) log_message('debug', $this->connection->last_query());
 		
 		// TODO: Remove object from association array.
 		
@@ -514,7 +528,9 @@ class MY_Model extends CI_Model {
 	 */
 	public function count()
 	{
-		return $this->connection->count_all_results($this->table_name);
+		$num_results = $this->connection->count_all_results($this->table_name);
+		if ($this->logger) log_message('debug', $this->connection->last_query());
+		return $num_results;
 	}
 
 	/**
@@ -702,13 +718,18 @@ class MY_Model extends CI_Model {
 				$join1_str = $join_table . '.' . $key1 . ' = ' . $table1 . '.' . $this->primary_key;
 				$join2_str = $join_table . '.' . $key2 . ' = ' . $table2 . '.' . $join_model->primary_key;
 				$where_str = $table1 . '.' . $this->primary_key . ' = ' . $record->{$this->primary_key};
-				
-				//$record->{$relationship} = $join_model->joins($join_table, $join2_str)->joins($this->table_name, $join1_str)->where($where_str);
-				
-				$sql = "SELECT $table2.* FROM $table2 JOIN $join_table ON $join2_str JOIN $this->table_name ON $join1_str WHERE $where_str";
+				$where_key = $record->{$this->primary_key};
+								
+				//$sql = "SELECT $table2.* FROM $table2 JOIN $join_table ON $join2_str JOIN $this->table_name ON $join1_str WHERE $where_str";
+				$sql = "SELECT $table2.*, t0.$key1 AS ar_association_key_name FROM $table2 
+						INNER JOIN $join_table t0 ON $table2.$join_model->primary_key = t0.$key2 
+						WHERE t0.$key1 = $where_key";
 				
 				$record->{$relationship} = array();
 				$query = $this->connection->query($sql);
+
+				if ($this->logger) log_message('debug', $this->connection->last_query());
+				
 				foreach ($query->result() as $row)
 				{
 					$association = $join_model->parse_row($row);
@@ -717,6 +738,11 @@ class MY_Model extends CI_Model {
 				
 			}
 		}
+		
+		// Empty all includes calls to prevent recursion.
+		$this->includes_values = array();
+		$this->after_find = array();
+		
 	}
 	
 	protected function validate($data)
@@ -835,6 +861,7 @@ class MY_Model extends CI_Model {
 	 */
 	protected function parse_row($row)
 	{
+		
 		$class_name = get_class($this);
 		$record = new $class_name();	
 		foreach ($row as $key => $val)
@@ -847,7 +874,7 @@ class MY_Model extends CI_Model {
 		
 		// Clone callbacks.
 		$record->after_find = $this->after_find;
-
+		
 		// Trigger after callbacks.
 		$record->run_callback('after_initialize', $record);
 		$record->run_callback('after_find', $record);
@@ -863,7 +890,7 @@ class MY_Model extends CI_Model {
 	{
 		$this->limit_value = 0;
 		$this->offset_value = 0;
-		$this->before_find = array();		
+		$this->before_find = array();
 	}
 	
 	
