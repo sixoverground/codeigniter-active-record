@@ -278,6 +278,11 @@ class MY_Model extends CI_Model {
 		
 		// Validate the model.
 		$this->run_callback('before_validation', $this);
+		// Update data with anything changed from callbacks.
+		foreach ($this->columns as $key => $val)
+		{
+			$data[$key] = $this->{$key};
+		}
 		$data = $this->validate($data);
 		if ($data === FALSE) return FALSE;
 		$this->run_callback('after_validation', $this);
