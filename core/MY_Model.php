@@ -15,6 +15,7 @@ class MY_Model extends CI_Model {
 	protected $columns = array(); // Columns to query
 	protected $primary_key = 'id'; // Table primary key
 	protected $timestamps = FALSE; // created_at and udpated_at
+	protected $booleans = array(); // Columns that should be treated as boolean
 
 	// Relationship arrays.
 	protected $belongs_to = array(); // Has one model that it belongs to.
@@ -69,6 +70,15 @@ class MY_Model extends CI_Model {
 
 		// Determine the database table name.
 		$this->compute_table_name();
+
+		// Check for booleans.
+		foreach ($this->columns as $key => $val)
+		{
+			if (is_bool($val))
+			{
+				array_push($this->booleans, $key);
+			}
+		}
 	}
 
 	/**
@@ -577,6 +587,12 @@ class MY_Model extends CI_Model {
 	 */
 	public function to_json()
 	{
+		// Force booleans.
+		foreach ($this->booleans as $boolean)
+		{
+			$this->{$boolean} = ($this->{$boolean} ? TRUE : FALSE);
+		}
+
 		// Add public columns to array.
 		$output = array();
 		$output[$this->primary_key] = $this->{$this->primary_key};
