@@ -15,7 +15,7 @@ class MY_Model extends CI_Model {
 	protected $columns = array(); // Columns to query
 	protected $primary_key = 'id'; // Table primary key
 	protected $timestamps = FALSE; // created_at and udpated_at
-	protected $booleans = array(); // Columns that should be treated as boolean
+	protected $column_types = array(); // Columns that should be treated as boolean
 
 	// Relationship arrays.
 	protected $belongs_to = array(); // Has one model that it belongs to.
@@ -70,15 +70,6 @@ class MY_Model extends CI_Model {
 
 		// Determine the database table name.
 		$this->compute_table_name();
-
-		// Check for booleans.
-		foreach ($this->columns as $key => $val)
-		{
-			if (is_bool($val))
-			{
-				array_push($this->booleans, $key);
-			}
-		}
 	}
 
 	/**
@@ -587,12 +578,6 @@ class MY_Model extends CI_Model {
 	 */
 	public function to_json()
 	{
-		// Force booleans.
-		foreach ($this->booleans as $boolean)
-		{
-			$this->{$boolean} = ($this->{$boolean} ? TRUE : FALSE);
-		}
-
 		// Add public columns to array.
 		$output = array();
 		$output[$this->primary_key] = $this->{$this->primary_key};
@@ -882,12 +867,29 @@ class MY_Model extends CI_Model {
 	 */
 	protected function parse_row($row)
 	{
-
 		$class_name = get_class($this);
 		$record = new $class_name();
 		foreach ($row as $key => $val)
 		{
 			$record->{$key} = $val;
+		}
+
+		// Force types.
+		$record->id = intval($record->id);
+		foreach ($this->column_types as $type_key => $type_val)
+		{
+			if ($type_val == 'boolean')
+			{
+				$record->{$type_key} = boolval($record->{$type_key});
+			}
+			else if ($type_val == 'integer')
+			{
+				$record->{$type_key} = intval($record->{$type_key});
+			}
+			else if ($type_val == 'float')
+			{
+				$record->{$type_key} = floatval($record->{$type_key});
+			}
 		}
 
 		// Clone scoped includes.
