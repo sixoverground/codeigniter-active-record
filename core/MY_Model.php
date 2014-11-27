@@ -603,10 +603,14 @@ class MY_Model extends CI_Model {
 		// Add has many relationships if they exist.
 		foreach ($this->has_many as $relationship)
 		{
-			$this->{$relationship} = array();
-			foreach ($this->{$relationship} as $child)
+			if (isset($this->{$relationship}))
 			{
-				array_push($this->{$relationship}, $child->to_json());
+				$json_relationship = array();
+				foreach ($this->{$relationship} as $child)
+				{
+					array_push($json_relationship, $child->to_json());
+				}
+				$output[$relationship] = $json_relationship;
 			}
 		}
 
