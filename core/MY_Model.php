@@ -576,7 +576,7 @@ class MY_Model extends CI_Model {
 	 *
 	 * @return string
 	 */
-	public function to_json()
+	public function to_json($options = array())
 	{
 		// Add public columns to array.
 		$output = array();
@@ -591,12 +591,33 @@ class MY_Model extends CI_Model {
 			$output['updated_at'] = $this->updated_at;
 		}
 
+		// Include passed options.
+		if (isset($options['include']))
+		{
+			foreach ($options['include'] as $extra)
+			{
+				$output[$extra] = $this->{$extra};
+			}
+		}
+
 		// Add belongs to relationships if they exist.
 		foreach ($this->belongs_to as $relationship)
 		{
 			if (isset($this->{$relationship}) && $this->{$relationship} != '')
 			{
-				$output[$relationship] = $this->{$relationship}->to_json();
+
+				// Add passed included options
+				$option = array();
+				foreach ($options as $key => $val)
+				{
+					// echo 'compare ' . $key . ' to ' . $relationship;
+					if ($key == $relationship)
+					{
+						$option = $val;
+					}
+				}
+
+				$output[$relationship] = $this->{$relationship}->to_json($option);
 			}
 		}
 
@@ -605,10 +626,21 @@ class MY_Model extends CI_Model {
 		{
 			if (isset($this->{$relationship}))
 			{
+
+				// Add passed included options
+				$option = array();
+				foreach ($options as $key => $val)
+				{
+					if ($key == $relationship)
+					{
+						$option = $options[$key];
+					}
+				}
+
 				$json_relationship = array();
 				foreach ($this->{$relationship} as $child)
 				{
-					array_push($json_relationship, $child->to_json());
+					array_push($json_relationship, $child->to_json($option));
 				}
 				$output[$relationship] = $json_relationship;
 			}
