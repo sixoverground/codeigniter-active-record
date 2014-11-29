@@ -911,20 +911,20 @@ class MY_Model extends CI_Model {
 		}
 
 		// Force types.
-		$record->id = intval($record->id);
+		$record->id = (int) ($record->id);
 		foreach ($this->column_types as $type_key => $type_val)
 		{
 			if ($type_val == 'boolean')
 			{
-				$record->{$type_key} = boolval($record->{$type_key});
+				$record->{$type_key} = (bool) ($record->{$type_key});
 			}
 			else if ($type_val == 'integer')
 			{
-				$record->{$type_key} = intval($record->{$type_key});
+				$record->{$type_key} = (int) ($record->{$type_key});
 			}
 			else if ($type_val == 'float')
 			{
-				$record->{$type_key} = floatval($record->{$type_key});
+				$record->{$type_key} = (float) ($record->{$type_key});
 			}
 		}
 
