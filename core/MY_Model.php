@@ -600,10 +600,31 @@ class MY_Model extends CI_Model {
 			}
 		}
 
+		// Exclude passed options.
+		if (isset($options['exclude']))
+		{
+			foreach ($options['exclude'] as $extra)
+			{
+				if (isset($output[$extra])) unset($output[$extra]);
+			}
+		}
+
 		// Add belongs to relationships if they exist.
 		foreach ($this->belongs_to as $relationship)
 		{
-			if (isset($this->{$relationship}) && $this->{$relationship} != '')
+
+			// Exclude passed options.
+			$exclude_relationship = FALSE;
+			if (isset($options['exclude']))
+			{
+				if (in_array($relationship, $options['exclude']))
+				{
+					$exclude_relationship = TRUE;
+				}
+			}
+
+
+			if (isset($this->{$relationship}) && $this->{$relationship} != '' && ! $exclude_relationship)
 			{
 
 				// Add passed included options
@@ -624,7 +645,18 @@ class MY_Model extends CI_Model {
 		// Add has many relationships if they exist.
 		foreach ($this->has_many as $relationship)
 		{
-			if (isset($this->{$relationship}))
+
+			// Exclude passed options.
+			$exclude_relationship = FALSE;
+			if (isset($options['exclude']))
+			{
+				if (in_array($relationship, $options['exclude']))
+				{
+					$exclude_relationship = TRUE;
+				}
+			}
+
+			if (isset($this->{$relationship}) && ! $exclude_relationship)
 			{
 
 				// Add passed included options
