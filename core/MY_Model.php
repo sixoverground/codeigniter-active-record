@@ -62,14 +62,32 @@ class MY_Model extends CI_Model {
 	{
 		parent::__construct();
 
-		// Load the inflector class for pluralization.
-		$this->load->helper('inflector');
+		$args = func_get_args();
+
+
 
 		// Save the database connection.
-		$this->establish_connection();
+		switch (func_num_args())
+		{
+		case 1:
+			$this->connection = $args[0];
+			break;
+			case 2:
+			$this->connection = $args[0];
+			$this->table_name = $args[1];
+			break;
+		default:
+			$this->establish_connection();
+		}
 
 		// Determine the database table name.
-		$this->compute_table_name();
+		if ( ! $this->table_name)
+		{
+			// Load the inflector class for pluralization.
+			$this->load->helper('inflector');
+			$this->compute_table_name();
+		}
+
 	}
 
 	/**
@@ -168,7 +186,7 @@ class MY_Model extends CI_Model {
 	{
 		$data = $this->initialize_attributes($data);
 		$class_name = get_class($this);
-		$record = new $class_name();
+		$record = new $class_name($this->connection, $this->table_name);
 		foreach ($this->columns as $key => $val)
 		{
 			$record->{$key} = $data[$key];
@@ -936,7 +954,9 @@ class MY_Model extends CI_Model {
 	protected function parse_row($row)
 	{
 		$class_name = get_class($this);
-		$record = new $class_name();
+
+		$record = new $class_name($this->connection, $this->table_name);
+
 		foreach ($row as $key => $val)
 		{
 			$record->{$key} = $val;
@@ -946,17 +966,20 @@ class MY_Model extends CI_Model {
 		$record->id = (int) ($record->id);
 		foreach ($this->column_types as $type_key => $type_val)
 		{
-			if ($type_val == 'boolean')
+			if (isset($record->{$type_key}))
 			{
-				$record->{$type_key} = (bool) ($record->{$type_key});
-			}
-			else if ($type_val == 'integer')
-			{
-				$record->{$type_key} = (int) ($record->{$type_key});
-			}
-			else if ($type_val == 'float')
-			{
-				$record->{$type_key} = (float) ($record->{$type_key});
+				if ($type_val == 'boolean')
+				{
+					$record->{$type_key} = (bool) ($record->{$type_key});
+				}
+				else if ($type_val == 'integer')
+				{
+					$record->{$type_key} = (int) ($record->{$type_key});
+				}
+				else if ($type_val == 'float')
+				{
+					$record->{$type_key} = (float) ($record->{$type_key});
+				}
 			}
 		}
 
