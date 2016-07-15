@@ -881,14 +881,15 @@ class MY_Model extends CI_Model {
 	 */
 	protected function establish_connection()
 	{
-		if ( ! $this->connection)
-		{
-			$this->connection = $this->load->database('default', TRUE);
-		}
-		else
-		{
-			$this->connection = $this->load->database($this->connection, TRUE);
-		}
+		// if ( ! $this->connection)
+		// {
+		// 	$this->connection = $this->load->database('default', TRUE);
+		// }
+		// else
+		// {
+		// 	$this->connection = $this->load->database($this->connection, TRUE);
+		// }
+		$this->connection = $this->db;
 	}
 
 	/**
